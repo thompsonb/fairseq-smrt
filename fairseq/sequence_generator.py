@@ -526,14 +526,14 @@ class EnsembleModel(torch.nn.Module):
         return [model.encoder(**encoder_input) for model in self.models]
 
     @torch.no_grad()
-    def forward_decoder(self, tokens, encoder_outs, temperature=1.):
+    def forward_decoder(self, tokens, encoder_outs, temperature=1., use_log_probs=True):
         if len(self.models) == 1:
             return self._decode_one(
                 tokens,
                 self.models[0],
                 encoder_outs[0] if self.has_encoder() else None,
                 self.incremental_states,
-                log_probs=True,
+                log_probs=use_log_probs,
                 temperature=temperature,
             )
 
@@ -545,7 +545,7 @@ class EnsembleModel(torch.nn.Module):
                 model,
                 encoder_out,
                 self.incremental_states,
-                log_probs=True,
+                log_probs=use_log_probs,
                 temperature=temperature,
             )
             log_probs.append(probs)

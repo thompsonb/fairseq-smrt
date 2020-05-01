@@ -1,164 +1,180 @@
-<p align="center">
-  <img src="fairseq_logo.png" width="150">
-  <br />
-  <br />
-  <a href="https://github.com/pytorch/fairseq/blob/master/LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
-  <a href="https://github.com/pytorch/fairseq/releases"><img alt="Latest Release" src="https://img.shields.io/github/release/pytorch/fairseq.svg" /></a>
-  <a href="https://github.com/pytorch/fairseq/actions?query=workflow:build"><img alt="Build Status" src="https://github.com/pytorch/fairseq/workflows/build/badge.svg" /></a>
-  <a href="https://fairseq.readthedocs.io/en/latest/?badge=latest"><img alt="Documentation Status" src="https://readthedocs.org/projects/fairseq/badge/?version=latest" /></a>
-</p>
+# Simulated Multiple Reference Training (SMRT)
 
---------------------------------------------------------------------------------
+This repo contains a fork of [fairseq](https://github.com/pytorch/fairseq) sufficient to 
+replicate the experiments in [Simulated Multiple Reference Training
+Improves Low-Resource Machine Translation](https://arxiv.org/abs/2004.14524)
+by [Huda Khayrallah](http://cs.jhu.edu/~huda), [Brian Thompson](https://thompsonb.github.io/), 
+[Matt Post](http://www.cs.jhu.edu/~post/), [Philipp Koehn](http://www.cs.jhu.edu/~phi/). 
 
-Fairseq(-py) is a sequence modeling toolkit that allows researchers and
-developers to train custom models for translation, summarization, language
-modeling and other text generation tasks.
+Here's the abstract from the [paper](https://arxiv.org/abs/2004.14524):
+>Many valid translations exist for a given sentence, and yet machine translation (MT) is trained 
+>with a single reference translation, exacerbating data sparsity in low-resource settings. 
+>We introduce a novel MT training method that approximates the full space of possible translations by:
+>sampling a paraphrase of the reference sentence from a paraphraser and training the MT model 
+>to predict the paraphraser's distribution over possible tokens. With an English paraphraser,
+>we demonstrate the effectiveness of our method in low-resource settings, with gains of 1.2 to 7 BLEU.
 
-### What's New:
-
-- February 2020: [mBART model and code released](examples/mbart/README.md)
-- February 2020: [Added tutorial for back-translation](https://github.com/pytorch/fairseq/tree/master/examples/backtranslation#training-your-own-model-wmt18-english-german)
-- December 2019: [fairseq 0.9.0 released](https://github.com/pytorch/fairseq/releases/tag/v0.9.0)
-- November 2019: [VizSeq released (a visual analysis toolkit for evaluating fairseq models)](https://facebookresearch.github.io/vizseq/docs/getting_started/fairseq_example)
-- November 2019: [CamemBERT model and code released](examples/camembert/README.md)
-- November 2019: [BART model and code released](examples/bart/README.md)
-- November 2019: [XLM-R models and code released](examples/xlmr/README.md)
-- September 2019: [Nonautoregressive translation code released](examples/nonautoregressive_translation/README.md)
-- August 2019: [WMT'19 models released](examples/wmt19/README.md)
-- July 2019: fairseq relicensed under MIT license
-- July 2019: [RoBERTa models and code released](examples/roberta/README.md)
-- June 2019: [wav2vec models and code released](examples/wav2vec/README.md)
-
-### Features:
-
-Fairseq provides reference implementations of various sequence-to-sequence models, including:
-- **Convolutional Neural Networks (CNN)**
-  - [Language Modeling with Gated Convolutional Networks (Dauphin et al., 2017)](examples/language_model/conv_lm/README.md)
-  - [Convolutional Sequence to Sequence Learning (Gehring et al., 2017)](examples/conv_seq2seq/README.md)
-  - [Classical Structured Prediction Losses for Sequence to Sequence Learning (Edunov et al., 2018)](https://github.com/pytorch/fairseq/tree/classic_seqlevel)
-  - [Hierarchical Neural Story Generation (Fan et al., 2018)](examples/stories/README.md)
-  - [wav2vec: Unsupervised Pre-training for Speech Recognition (Schneider et al., 2019)](examples/wav2vec/README.md)
-- **LightConv and DynamicConv models**
-  - [Pay Less Attention with Lightweight and Dynamic Convolutions (Wu et al., 2019)](examples/pay_less_attention_paper/README.md)
-- **Long Short-Term Memory (LSTM) networks**
-  - Effective Approaches to Attention-based Neural Machine Translation (Luong et al., 2015)
-- **Transformer (self-attention) networks**
-  - Attention Is All You Need (Vaswani et al., 2017)
-  - [Scaling Neural Machine Translation (Ott et al., 2018)](examples/scaling_nmt/README.md)
-  - [Understanding Back-Translation at Scale (Edunov et al., 2018)](examples/backtranslation/README.md)
-  - [Adaptive Input Representations for Neural Language Modeling (Baevski and Auli, 2018)](examples/language_model/transformer_lm/README.md)
-  - [Mixture Models for Diverse Machine Translation: Tricks of the Trade (Shen et al., 2019)](examples/translation_moe/README.md)
-  - [RoBERTa: A Robustly Optimized BERT Pretraining Approach (Liu et al., 2019)](examples/roberta/README.md)
-  - [Facebook FAIR's WMT19 News Translation Task Submission (Ng et al., 2019)](examples/wmt19/README.md)
-  - [Jointly Learning to Align and Translate with Transformer Models (Garg et al., 2019)](examples/joint_alignment_translation/README.md )
-  - [Multilingual Denoising Pre-training for Neural Machine Translation (Liu et at., 2020)] (examples/mbart/README.md)
-- **Non-autoregressive Transformers**
-  - Non-Autoregressive Neural Machine Translation (Gu et al., 2017)
-  - Deterministic Non-Autoregressive Neural Sequence Modeling by Iterative Refinement (Lee et al. 2018)
-  - Insertion Transformer: Flexible Sequence Generation via Insertion Operations (Stern et al. 2019)
-  - Mask-Predict: Parallel Decoding of Conditional Masked Language Models (Ghazvininejad et al., 2019)
-  - [Levenshtein Transformer (Gu et al., 2019)](examples/nonautoregressive_translation/README.md)
+An illustration of our method is below.
+Each time a target sentence in the training data is used,
+a paraphrase(blue) is sampled from the many possible paraphrases (grey).
+The training objective also takes into account the distribution over all the possible options (green) 
+along the sampled path. 
 
 
-**Additionally:**
-- multi-GPU (distributed) training on one machine or across multiple machines
-- fast generation on both CPU and GPU with multiple search algorithms implemented:
-  - beam search
-  - Diverse Beam Search ([Vijayakumar et al., 2016](https://arxiv.org/abs/1610.02424))
-  - sampling (unconstrained, top-k and top-p/nucleus)
-- large mini-batch training even on a single GPU via delayed updates
-- mixed precision training (trains faster with less GPU memory on [NVIDIA tensor cores](https://developer.nvidia.com/tensor-cores))
-- extensible: easily register new models, criterions, tasks, optimizers and learning rate schedulers
+![paraphrase_lattice image](media/paraphrase_lattice.png)
 
-We also provide [pre-trained models for translation and language modeling](#pre-trained-models-and-examples)
-with a convenient `torch.hub` interface:
-```python
-en2de = torch.hub.load('pytorch/fairseq', 'transformer.wmt19.en-de.single_model')
-en2de.translate('Hello world', beam=5)
-# 'Hallo Welt'
+Our method is implemented as a fairseq criterion, enabled via:
 ```
-See the PyTorch Hub tutorials for [translation](https://pytorch.org/hub/pytorch_fairseq_translation/)
-and [RoBERTa](https://pytorch.org/hub/pytorch_fairseq_roberta/) for more examples.
+--criterion smrt_cross_entropy
+```
 
-![Model](fairseq.gif)
+It takes in a pretrained Fairseq paraphraser and data directory for the corresponding dictionary:
+```
+--paraphraser-model /path/to/paraphraser/paraphraser.pt  
+--paraphraser-data-dir /directory/containing/directory/ 
+```
 
-# Requirements and Installation
+During training, our new objective is mixed with standard label smoothed cross entropy training.
+To control the fraction of the time the new objective is used:
+``` 
+--prob-use-smrt 0.5
+```
 
-* [PyTorch](http://pytorch.org/) version >= 1.2.0
-* Python version >= 3.6
-* For training new models, you'll also need an NVIDIA GPU and [NCCL](https://github.com/NVIDIA/nccl)
-* **For faster training** install NVIDIA's [apex](https://github.com/NVIDIA/apex) library with the `--cuda_ext` and `--deprecated_fused_adam` options
+Finally, to control the amount of variation introduced when sampling a path from the paraphraser:
+```
+--paraphraser-sample-topN 100
+```
 
-To install fairseq:
+
+# Installation Instructions
+
+To install in a conda environment:
 ```bash
-pip install fairseq
+git clone git@github.com:thompsonb/fairseq-smrt.git #or git clone https://github.com/thompsonb/fairseq-smrt.git
+cd fairseq-smrt
+conda create -n fairseq-smrt python=3.7 pytorch=1.4.0 torchvision=0.5.0 -c pytorch
+source activate fairseq-smrt
+pip install --editable . #this command needs to be run from inside the fairseq-smrt directory. 
+pip install 'tensorboard==2.2.1'
+pip install 'tensorboardX==2.0'
 ```
 
-On MacOS:
+# Paraphraser Model 
+We [release](data.statmt.org/smrt) a pre-trained paraphraser model trained on the [ParaBank2](https://www.aclweb.org/anthology/K19-1005/) dataset,
+along along with its associated vocabulary, and the 
+[SentencePiece](https://www.aclweb.org/anthology/D18-2012/) model.
+
+In order to use this paraphraser in MT training, 
+you must apply this SentencePiece model to the target side of your training data, 
+and use this dictionary in training. 
+
+
+# Replication Example
+Below are commands to replicate one of the experiments (hu-en) from the [paper](URL).
+We assume you have followed the installation instructions above. 
+You should run on a machine with a GPU and [CUDA](https://developer.nvidia.com/cuda-zone).
+Other language pairs follow the same pattern. 
+
 ```bash
-CFLAGS="-stdlib=libc++" pip install fairseq
+source activate fairseq-smrt
+fairseq_smrt=`pwd` #set this to repo path
+cd $fairseq_smrt
+
+#download and extract the paraphrase model 
+wget data.statmt.org/smrt/smrt-parabank2-fairseq.tgz
+tar -xf smrt-parabank2-fairseq.tgz
+
+# download and extract the data split
+wget data.statmt.org/smrt/smrt-globalvoices-splits.tgz
+tar -xf smrt-globalvoices-splits.tgz
+
+#apply fairseq-preprocess to the files that already have SentencePiece applied
+trg=en
+src=hu
+
+data=$fairseq_smrt/smrt-globalvoices-splits/$src-$trg
+databin=$data/databin
+mkdir -p $databin
+
+python $fairseq_smrt/preprocess.py --source-lang $src --target-lang $trg \
+        --trainpref $data/train.sp --validpref $data/valid.sp \
+        --testpref $data/test.sp  --workers 30 \
+        --tgtdict smrt-parabank2-fairseq/dict.en.txt \
+        --destdir $databin
+
+# run training
+traindir=$fairseq_smrt/expts/$src-$trg
+mkdir -p $traindir
+mkdir -p $traindir/tensorboard
+
+# The the total batchsize should be 16000. Due to the way batching works in fairseq,
+# this should be the product of (\# of gpus) \* (max-tokens) \* (update-freq).\n
+# The exact setting of each of these will vary based on your hardware. 
+batchsize=4000
+updatefreq=4  # set to 4 for 1 GPU, 2 for 2 GPUs, 1 for 4 GPUs if you use a batchsize of 4000
+
+python $fairseq_smrt/train.py \
+  $databin \
+ --source-lang $src \
+ --target-lang $trg \
+ --save-dir $traindir \
+ --patience 50 --criterion smrt_cross_entropy \
+ --paraphraser-model  $fairseq_smrt/smrt-parabank2-fairseq/paraphraser.pt  \
+ --paraphraser-data-dir $fairseq_smrt/smrt-parabank2-fairseq/ \
+ --paraphraser-sample-topN 100 \
+ --prob-use-smrt 0.5 \
+ --label-smoothing 0.2 \
+ --share-decoder-input-output-embed \
+ --arch transformer  --encoder-layers 5 --decoder-layers 5 \
+ --encoder-embed-dim 512 --decoder-embed-dim 512 \
+ --encoder-ffn-embed-dim 2048 --decoder-ffn-embed-dim 2048 \
+ --encoder-attention-heads 2 --decoder-attention-heads 2 \
+ --encoder-normalize-before --decoder-normalize-before \
+ --dropout 0.4 --attention-dropout 0.2 --relu-dropout 0.2 \
+ --weight-decay 0.0001 \
+ --optimizer adam --adam-betas '(0.9, 0.98)' --clip-norm 0 \
+ --lr-scheduler inverse_sqrt --warmup-updates 4000 --warmup-init-lr 1e-7 \
+ --lr 1e-3 --min-lr 1e-9 --no-epoch-checkpoints \
+ --max-tokens $batchsize --tensorboard-logdir $traindir/tensorboard \
+ --max-epoch 200 --save-interval 10 --update-freq $updatefreq \
+ --log-format json --log-interval 500   &> $traindir/train.log
+
+# generate translations
+python $fairseq_smrt/generate.py $databin \
+      --beam 5 --remove-bpe sentencepiece --gen-subset test  \
+      --batch-size 100 --lenpen 1.2 --source-lang $src --target-lang $trg \
+      --path $traindir/checkpoint_best.pt  \
+      &> $traindir/test.log
+
+# score with sacrebleu
+grep '^H' $traindir/test.log  | cut -d- -f 2- | sort -n | cut -f 3-  >  $traindir/test.txt 
+cat $traindir/test.txt |  sacrebleu $data/test.raw.$trg > $traindir/test.sacrebleu
 ```
-
-If you use Docker make sure to increase the shared memory size either with
-`--ipc=host` or `--shm-size` as command line options to `nvidia-docker run`.
-
-**Installing from source**
-
-To install fairseq from source and develop locally:
-```bash
-git clone https://github.com/pytorch/fairseq
-cd fairseq
-pip install --editable .
-```
-
-# Getting Started
-
-The [full documentation](https://fairseq.readthedocs.io/) contains instructions
-for getting started, training new models and extending fairseq with new model
-types and tasks.
-
-# Pre-trained models and examples
-
-We provide pre-trained models and pre-processed, binarized test sets for several tasks listed below,
-as well as example training and evaluation commands.
-
-- [Translation](examples/translation/README.md): convolutional and transformer models are available
-- [Language Modeling](examples/language_model/README.md): convolutional and transformer models are available
-- [wav2vec](examples/wav2vec/README.md): wav2vec large model is available
-
-We also have more detailed READMEs to reproduce results from specific papers:
-- [Jointly Learning to Align and Translate with Transformer Models (Garg et al., 2019)](examples/joint_alignment_translation/README.md )
-- [Levenshtein Transformer (Gu et al., 2019)](examples/nonautoregressive_translation/README.md)
-- [Facebook FAIR's WMT19 News Translation Task Submission (Ng et al., 2019)](examples/wmt19/README.md)
-- [RoBERTa: A Robustly Optimized BERT Pretraining Approach (Liu et al., 2019)](examples/roberta/README.md)
-- [wav2vec: Unsupervised Pre-training for Speech Recognition (Schneider et al., 2019)](examples/wav2vec/README.md)
-- [Mixture Models for Diverse Machine Translation: Tricks of the Trade (Shen et al., 2019)](examples/translation_moe/README.md)
-- [Pay Less Attention with Lightweight and Dynamic Convolutions (Wu et al., 2019)](examples/pay_less_attention_paper/README.md)
-- [Understanding Back-Translation at Scale (Edunov et al., 2018)](examples/backtranslation/README.md)
-- [Classical Structured Prediction Losses for Sequence to Sequence Learning (Edunov et al., 2018)](https://github.com/pytorch/fairseq/tree/classic_seqlevel)
-- [Hierarchical Neural Story Generation (Fan et al., 2018)](examples/stories/README.md)
-- [Scaling Neural Machine Translation (Ott et al., 2018)](examples/scaling_nmt/README.md)
-- [Convolutional Sequence to Sequence Learning (Gehring et al., 2017)](examples/conv_seq2seq/README.md)
-- [Language Modeling with Gated Convolutional Networks (Dauphin et al., 2017)](examples/language_model/conv_lm/README.md)
-
-# Join the fairseq community
-
-* Facebook page: https://www.facebook.com/groups/fairseq.users
-* Google group: https://groups.google.com/forum/#!forum/fairseq-users
 
 # License
 fairseq(-py) is MIT-licensed.
-The license applies to the pre-trained models as well.
 
 # Citation
 
-Please cite as:
-
+Please cite this work as:
 ```bibtex
-@inproceedings{ott2019fairseq,
-  title = {fairseq: A Fast, Extensible Toolkit for Sequence Modeling},
-  author = {Myle Ott and Sergey Edunov and Alexei Baevski and Angela Fan and Sam Gross and Nathan Ng and David Grangier and Michael Auli},
-  booktitle = {Proceedings of NAACL-HLT 2019: Demonstrations},
-  year = {2019},
+@inproceedings{khayrallah-etal-2020-simulated,
+    title={Simulated Multiple Reference Training Improves Low-Resource Machine Translation},
+    author={Huda Khayrallah and Brian Thompson and Matt Post and Philipp Koehn},
+    year={2020},
+    publisher  = {arXiv preprint arXiv:2004.14524},
+    url={https://arxiv.org/abs/2004.14524}
 }
 ```
+in addition to 
+[fairseq](https://www.aclweb.org/anthology/N19-4009).
+
+If you replicate the parameters we use, please cite [FLoRes](https://github.com/facebookresearch/flores).
+If you use any data preprocessed with [SentencePiece](https://www.aclweb.org/anthology/D18-2012/) please cite it. 
+  
+The data used to train the paraphraser comes from [ParaBank2](https://www.aclweb.org/anthology/K19-1005/),
+please cite that work if you use the released paraphraser.
+
+If you use the GlobalVoices data please cite [Opus](https://www.aclweb.org/anthology/L12-1246).
+
+If you use any data preprocessed with [SentencePiece](https://www.aclweb.org/anthology/D18-2012/) please cite it. 
