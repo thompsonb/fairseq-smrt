@@ -2,17 +2,19 @@
 
 This repo contains a fork of [fairseq](https://github.com/pytorch/fairseq) sufficient to 
 replicate the experiments in [Simulated Multiple Reference Training
-Improves Low-Resource Machine Translation](https://arxiv.org/abs/2004.14524)
+Improves Low-Resource Machine Translation](https://www.aclweb.org/anthology/2020.emnlp-main.7/)
 by [Huda Khayrallah](http://cs.jhu.edu/~huda), [Brian Thompson](https://thompsonb.github.io/), 
 [Matt Post](http://www.cs.jhu.edu/~post/), [Philipp Koehn](http://www.cs.jhu.edu/~phi/). 
 
-Here's the abstract from the [paper](https://arxiv.org/abs/2004.14524):
->Many valid translations exist for a given sentence, and yet machine translation (MT) is trained 
->with a single reference translation, exacerbating data sparsity in low-resource settings. 
->We introduce a novel MT training method that approximates the full space of possible translations by:
->sampling a paraphrase of the reference sentence from a paraphraser and training the MT model 
->to predict the paraphraser's distribution over possible tokens. With an English paraphraser,
->we demonstrate the effectiveness of our method in low-resource settings, with gains of 1.2 to 7 BLEU.
+Here's the abstract from the [paper](https://www.aclweb.org/anthology/2020.emnlp-main.7/):
+>Many valid translations exist for a given sentence, yet machine translation (MT) 
+>is trained with a single reference translation, exacerbating data sparsity in low-resource settings. 
+>We introduce Simulated Multiple Reference Training (SMRT), 
+>a novel MT training method that approximates the full space of possible translations 
+>by sampling a paraphrase of the reference sentence from a paraphraser 
+>and training the MT model to predict the paraphraser’s distribution over possible tokens. 
+>We demonstrate the effectiveness of SMRT in low-resource settings when translating to English, 
+>with improvements of 1.2 to 7.0 BLEU. We also find SMRT is complementary to back-translation. 
 
 An illustration of our method is below.
 Each time a target sentence in the training data is used,
@@ -159,12 +161,19 @@ fairseq(-py) is MIT-licensed.
 Please cite this work as:
 ```bibtex
 @inproceedings{khayrallah-etal-2020-simulated,
-    title={Simulated Multiple Reference Training Improves Low-Resource Machine Translation},
-    author={Huda Khayrallah and Brian Thompson and Matt Post and Philipp Koehn},
-    year={2020},
-    publisher  = {arXiv preprint arXiv:2004.14524},
-    url={https://arxiv.org/abs/2004.14524}
-}
+    title = "Simulated multiple reference training improves low-resource machine translation",
+    author = "Khayrallah, Huda  and
+      Thompson, Brian  and
+      Post, Matt  and
+      Koehn, Philipp",
+    booktitle = "Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+    month = nov,
+    year = "2020",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/2020.emnlp-main.7",
+    pages = "82--89"
+    }
 ```
 in addition to 
 [fairseq](https://www.aclweb.org/anthology/N19-4009).
@@ -176,5 +185,3 @@ The data used to train the paraphraser comes from [ParaBank2](https://www.aclweb
 please cite that work if you use the released paraphraser.
 
 If you use the GlobalVoices data please cite [Opus](https://www.aclweb.org/anthology/L12-1246).
-
-If you use any data preprocessed with [SentencePiece](https://www.aclweb.org/anthology/D18-2012/) please cite it. 
